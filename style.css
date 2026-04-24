@@ -1,0 +1,137 @@
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',sans-serif;
+}
+
+body{
+    min-height:100vh;
+    background: radial-gradient(circle at top, #1f2a44, #0d1117);
+    display:flex;
+    justify-content:center;
+    align-items:flex-start; /* changed */
+    padding:20px 0; /* added spacing */
+    overflow-y:auto; /* allow scroll */
+    color:#fff;
+}
+
+.container{
+    width:900px;
+    max-width:95%;
+}
+
+/* Toggle */
+.toggle{
+    display:flex;
+    justify-content:center;
+    margin-bottom:15px;
+}
+.toggle button{
+    padding:10px 20px;
+    margin:0 5px;
+    border:none;
+    border-radius:10px;
+    background:#222;
+    color:#fff;
+    cursor:pointer;
+}
+.toggle .active{
+    background:#3b82f6;
+}
+
+/* Search & Battle */
+.search, .battle{
+    display:flex;
+    gap:10px;
+    margin-bottom:20px;
+}
+.battle{ display:none; }
+
+input{
+    flex:1;
+    padding:14px;
+    border:none;
+    outline:none;
+    border-radius:10px;
+}
+
+button{
+    padding:14px 20px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    background:#3b82f6;
+    color:white;
+}
+
+/* Card */
+.card{
+    display:grid;
+    grid-template-columns:1fr 2fr;
+    gap:20px;
+    background:rgba(255,255,255,0.05);
+    backdrop-filter:blur(20px);
+    padding:25px;
+    border-radius:20px;
+    margin-bottom:15px;
+}
+
+.winner{
+    border:2px solid #22c55e;
+    box-shadow:0 0 12px rgba(34,197,94,0.5);
+}
+.loser{
+    border:2px solid #ef4444;
+    box-shadow:0 0 12px rgba(239,68,68,0.5);
+}
+
+.profile img{
+    width:120px;
+    border-radius:50%;
+    border:4px solid #3b82f6;
+}
+
+.stats{
+    display:flex;
+    gap:10px;
+    margin-bottom:10px;
+}
+.stat{
+    flex:1;
+    text-align:center;
+    background:rgba(255,255,255,0.06);
+    padding:10px;
+    border-radius:10px;
+}
+
+/* Minimal repo hover effect */
+.repo{
+    background: rgba(255,255,255,0.06);
+    padding:10px;
+    border-radius:10px;
+    margin-bottom:6px;
+    transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.repo:hover{
+    background: rgba(59,130,246,0.15);
+    transform: translateY(-1px);
+}
+
+.repo a{
+    color:white;
+    text-decoration:none;
+    display:flex;
+    justify-content:space-between;
+}
+
+.repo:hover a{
+    color:#c7d2fe;
+}
+
+.loading,.error{
+    text-align:center;
+    margin-bottom:10px;
+}

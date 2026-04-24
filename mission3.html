@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub Profile Finder</title>
+
+<link rel="stylesheet" type="text/css" href="style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- Toggle -->
+<div class="toggle">
+    <button id="searchTab" class="active" onclick="switchMode('search')">Search</button>
+    <button id="battleTab" onclick="switchMode('battle')">Battle</button>
+</div>
+
+<!-- Search -->
+<div class="search" id="searchBox">
+    <input id="input" placeholder="Search GitHub user...">
+    <button onclick="searchUser()">Search</button>
+</div>
+
+<!-- Battle -->
+<div class="battle" id="battleBox">
+    <input id="user1" placeholder="User 1">
+    <input id="user2" placeholder="User 2">
+    <button onclick="battleUsers()">Battle</button>
+</div>
+
+<div class="loading" id="loading"></div>
+<div class="error" id="error"></div>
+
+<div id="results"></div>
+
+</div>
+
+<script>
+function switchMode(mode){
+    searchBox.style.display = mode==="search"?"flex":"none";
+    battleBox.style.display = mode==="battle"?"flex":"none";
+
+    searchTab.classList.toggle("active",mode==="search");
+    battleTab.classList.toggle("active",mode==="battle");
+
+    results.innerHTML="";
+}
+
+/* Format Date */
+function formatDate(dateStr){
+    const d=new Date(dateStr);
+    return d.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});
+}
+
+/* Enter key for search */
+input.addEventListener("keypress",e=>{
+    if(e.key==="Enter") searchUser();
+});
+
+/* Enter key for battle */
+[user1, user2].forEach(field=>{
+    field.addEventListener("keypress",e=>{
+        if(e.key==="Enter") battleUsers();
+    });
+});
+
+/* Search */
+async function searchUser(){
+    const username=input.value.trim();
+    loading.textContent="Loading...";
+    error.textContent="";
+    results.innerHTML="";
+
+    try{
+        const res=await fetch(`https://api.github.com/users/${username}`);
+        if(!res.ok) throw new Error();
+
+        const user=await res.json();
+
+        const repoRes=await fetch(user.repos_url);
+        const repos=await repoRes.json();
+
+        loading.textContent="";
+        results.appendChild(createCard(user,repos));
+
+    }catch{
+        loading.textContent="";
+        error.textContent="❌ User Not Found";
+    }
+}
+
+/* Battle */
+async function battleUsers(){
+    const u1=user1.value.trim();
+    const u2=user2.value.trim();
+
+    loading.textContent="Loading...";
+    error.textContent="";
+    results.innerHTML="";
+
+    try{
+        const [r1,r2]=await Promise.all([
+            fetch(`https://api.github.com/users/${u1}`),
+            fetch(`https://api.github.com/users/${u2}`)
+        ]);
+
+        if(!r1.ok || !r2.ok) throw new Error();
+
+        const userA=await r1.json();
+        const userB=await r2.json();
+
+        const [reposA,reposB]=await Promise.all([
+            fetch(userA.repos_url).then(r=>r.json()),
+            fetch(userB.repos_url).then(r=>r.json())
+        ]);
+
+        const starsA=reposA.reduce((s,r)=>s+r.stargazers_count,0);
+        const starsB=reposB.reduce((s,r)=>s+r.stargazers_count,0);
+
+        const scoreA=starsA+userA.followers;
+        const scoreB=starsB+userB.followers;
+
+        const cardA=createCard(userA,reposA);
+        const cardB=createCard(userB,reposB);
+
+        if(scoreA>scoreB){
+            cardA.classList.add("winner");
+            cardB.classList.add("loser");
+        }else if(scoreB>scoreA){
+            cardB.classList.add("winner");
+            cardA.classList.add("loser");
+        }
+
+        loading.textContent="";
+        results.append(cardA,cardB);
+
+    }catch{
+        loading.textContent="";
+        error.textContent="❌ User Not Found";
+    }
+}
+
+/* Create Card */
+function createCard(user,repos){
+    const div=document.createElement("div");
+    div.className="card";
+
+    div.innerHTML=`
+    <div class="profile">
+        <img src="${user.avatar_url}">
+        <h2>${user.name||user.login}</h2>
+        <p>${user.bio||"No bio available"}</p>
+        <p>Joined: ${formatDate(user.created_at)}</p>
+        ${user.blog?`<a href="${user.blog}" target="_blank">Portfolio</a>`:""}
+    </div>
+
+    <div>
+        <div class="stats">
+            <div class="stat"><h3>${user.public_repos}</h3><span>Repos</span></div>
+            <div class="stat"><h3>${user.followers}</h3><span>Followers</span></div>
+            <div class="stat"><h3>${user.following}</h3><span>Following</span></div>
+        </div>
+
+        <div>
+            <h3>Latest Repositories</h3>
+            <br />
+            ${repos
+                .sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))
+                .slice(0,5)
+                .map(r=>`
+                <div class="repo">
+                    <a href="${r.html_url}" target="_blank">
+                        ${r.name}
+                        ⭐ ${r.stargazers_count}
+                    </a>
+                </div>`).join("")}
+        </div>
+    </div>
+    `;
+
+    return div;
+}
+</script>
+
+</body>
+</html>
